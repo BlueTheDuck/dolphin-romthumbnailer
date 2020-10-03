@@ -11,6 +11,7 @@
 Q_DECLARE_LOGGING_CATEGORY(LOG_ROMTHUMBNAILER)
 Q_LOGGING_CATEGORY(LOG_ROMTHUMBNAILER, "romthumbnailer")
 
+#include "config/configui.h"
 #include "nds.h"
 
 extern "C" {
@@ -63,6 +64,6 @@ bool RomThumbnailer::create(const QString &path, int w, int h, QImage &img) {
     return false;
 }
 
-QWidget *RomThumbnailer::createConfigurationWidget() {
-    return new QLabel("TODO");
+QWidget *RomThumbnailer::createConfigurationWidget() { 
+    return new ConfigUi();
 }

@@ -14,7 +14,6 @@ set(KF5_MIN_VERSION "5.3.0")
 
 find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED COMPONENTS
     Gui
-    UiTools
 )
 
 find_package(ECM 0.0.11 REQUIRED NO_MODULE)
@@ -31,17 +30,22 @@ include(KDECompilerSettings)
 include(FeatureSummary) # TODO: Really, what's this?
 include_directories(${KF5_INCLUDES})
 
+# Configuration UI
+set (Settings_src ${PROJECT_SOURCE_DIR}/src/config/configui.cpp)
+qt5_wrap_cpp(Settings_hdr_moc ${PROJECT_SOURCE_DIR}/src/config/configui.h)
+qt5_wrap_ui (Settings_ui_moc  ${PROJECT_SOURCE_DIR}/src/config/configui.ui)
 
 set(romthumbnailer_SRCS 
     src/romthumbnailer.cpp
     src/nds.cpp
-    src/settings.ui
+    ${Settings_src}
+    ${Settings_hdr_moc}
+    ${Settings_ui_moc}
 )
 add_library(romthumbnailer MODULE ${romthumbnailer_SRCS})
 target_link_libraries(romthumbnailer PRIVATE
     KF5::KIOWidgets
     Qt5::Widgets
-    Qt5::UiTools
 )
     
 install(TARGETS romthumbnailer DESTINATION ${PLUGIN_INSTALL_DIR})

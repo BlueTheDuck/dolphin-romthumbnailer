@@ -20,6 +20,8 @@ class RomThumbnailer : public ThumbCreator {
     bool create(const QString &path, int w, int h, QImage &img) override;
 
     QWidget* createConfigurationWidget() override;
+
+    void writeConfiguration(const QWidget *configurationWidget) override;
 };
 
 #endif // ROMTHUMBNAILER_H

@@ -21,8 +21,8 @@ set(CMAKE_MODULE_PATH ${ECM_MODULE_PATH} ${ECM_KDE_MODULE_DIR} "${CMAKE_CURRENT_
 
 find_package(KF5 ${KF5_MIN_VERSION} REQUIRED COMPONENTS
     KIO
+    Config
 )
-
 
 include(KDEInstallDirs)
 include(KDECMakeSettings)
@@ -42,11 +42,16 @@ set(romthumbnailer_SRCS
     ${Settings_hdr_moc}
     ${Settings_ui_moc}
 )
+kconfig_add_kcfg_files(romthumbnailer_SRCS romthumbnailerconfig.kcfgc)
+
 add_library(romthumbnailer MODULE ${romthumbnailer_SRCS})
 target_link_libraries(romthumbnailer PRIVATE
     KF5::KIOWidgets
+    KF5::ConfigCore
+    KF5::ConfigGui
     Qt5::Widgets
 )
     
 install(TARGETS romthumbnailer DESTINATION ${PLUGIN_INSTALL_DIR})
 install(FILES romthumbnailer.desktop DESTINATION ${SERVICES_INSTALL_DIR})
+install(FILES romthumbnailerconfig.kcfg DESTINATION ${KCFG_INSTALL_DIR})

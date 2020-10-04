@@ -1,0 +1,4 @@
+File=configdef.kcfg
+ClassName=ConfigData
+Mutators=true
+Singleton=true

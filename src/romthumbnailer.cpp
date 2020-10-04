@@ -1,20 +1,16 @@
 #include "romthumbnailer.h"
+
 #include <QDir>
 #include <QFile>
 #include <QImage>
+#include <QLoggingCategory>
 #include <qbuffer.h>
 #include <qcompilerdetection.h>
-
-#include <QtWidgets/QLabel>
-
-#include <QLoggingCategory>
 Q_DECLARE_LOGGING_CATEGORY(LOG_ROMTHUMBNAILER)
 Q_LOGGING_CATEGORY(LOG_ROMTHUMBNAILER, "romthumbnailer")
 
-
-#include <KConfigCore/KConfig>
-
-#include "config/configui.h"
+#include "configdata.h"
+#include "configui.h"
 #include "nds.h"
 
 extern "C" {
@@ -34,13 +30,24 @@ bool RomThumbnailer::create(const QString &path, int w, int h, QImage &img) {
 
     if (path.endsWith(".nds")) {
         if (in.exists() || in.isReadable()) {
+            QString path = ConfigData::dSCoversPath();
+
+            qCDebug(LOG_ROMTHUMBNAILER) << "Thumbnails on: " << path << '\n';
+
             char game_code[4];
             NDS::get_rom_code(in, game_code);
             qCDebug(LOG_ROMTHUMBNAILER) << "ROM Code: " << game_code << '\n';
-            auto ds_covers = QDir::home();
-            ds_covers.cd(".cache/RomThumbnailer/covers/ds/coverS/US/");
-            ds_covers.setFilter(QDir::Files);
-            ds_covers.setSorting(QDir::SortFlags::enum_type::Name);
+
+            QDir ds_covers(path);
+            if (!ds_covers.exists()) {
+                qCDebug(LOG_ROMTHUMBNAILER)
+                    << "Path set on config  (" << ds_covers.path()
+                    << ") does not exists" << '\n';
+                return false;
+            }
+            ds_covers.setSorting(QDir::SortFlag::Name);
+            ds_covers.setFilter(QDir::Filter::Files);
+
             QFileInfo cover_file;
             auto      file_list_info = ds_covers.entryInfoList();
             for (auto file : file_list_info) {
@@ -67,11 +74,19 @@ bool RomThumbnailer::create(const QString &path, int w, int h, QImage &img) {
     return false;
 }
 
-QWidget *RomThumbnailer::createConfigurationWidget() { 
-    return new ConfigUi();
+QWidget *RomThumbnailer::createConfigurationWidget() {
+    auto ui = new ConfigUi();
+    ui->setUseFrames(ConfigData::useFrames());
+    ui->setDSCoversPath(ConfigData::dSCoversPath());
+    return ui;
 }
 
-
 void RomThumbnailer::writeConfiguration(const QWidget *configurationWidget) {
-    
+    ConfigData *    config_data = ConfigData::self();
+    const ConfigUi *configui =
+        qobject_cast<const ConfigUi *>(configurationWidget);
+    config_data->setUseFrames(configui->getUseFrames());
+    config_data->setDSCoversPath(configui->getDSCoversPath().url(
+        QUrl::UrlFormattingOption::RemoveScheme));
+    config_data->save();
 }

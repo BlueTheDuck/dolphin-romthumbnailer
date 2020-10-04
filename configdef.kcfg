@@ -2,13 +2,12 @@
 <kcfg xmlns="http://www.kde.org/standards/kcfg/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0 http://www.kde.org/standards/kcfg/1.0/kcfg.xsd">
     <kcfgfile name="romthumbnailerrc" />
     <group name="romthumbnailercfg">
-        <entry name="NDSCoverPath" type="Path">
-            <label>Folder where the covers are stored</label>
-            <default>~/.cache/RomThumbnailer/covers/</default>
-            <!-- TODO: Change this to ~/.local/share -->
+        <entry name="DSCoversPath" type="Path">
+            <label>Folder where the DS covers are stored</label>
+            <default>~/.local/share/RomThumbnailer/covers/ds/</default>
         </entry>
-        <entry name="UseFrame" type="Bool">
-            <label>Should draw a frame to show the kind of console this ROM runs on</label>
+        <entry name="UseFrames" type="Bool">
+            <label>Should draw a frame around the cover to show the kind of console this ROM runs on</label>
             <default>false</default>
         </entry>
     </group>

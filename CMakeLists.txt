@@ -31,9 +31,9 @@ include(FeatureSummary) # TODO: Really, what's this?
 include_directories(${KF5_INCLUDES})
 
 # Configuration UI
-set (Settings_src ${PROJECT_SOURCE_DIR}/src/config/configui.cpp)
-qt5_wrap_cpp(Settings_hdr_moc ${PROJECT_SOURCE_DIR}/src/config/configui.h)
-qt5_wrap_ui (Settings_ui_moc  ${PROJECT_SOURCE_DIR}/src/config/configui.ui)
+set (Settings_src ${PROJECT_SOURCE_DIR}/src/configui.cpp)
+qt5_wrap_cpp(Settings_hdr_moc ${PROJECT_SOURCE_DIR}/src/configui.h)
+qt5_wrap_ui (Settings_ui_moc  ${PROJECT_SOURCE_DIR}/src/configui.ui)
 
 set(romthumbnailer_SRCS 
     src/romthumbnailer.cpp
@@ -42,7 +42,7 @@ set(romthumbnailer_SRCS
     ${Settings_hdr_moc}
     ${Settings_ui_moc}
 )
-kconfig_add_kcfg_files(romthumbnailer_SRCS romthumbnailerconfig.kcfgc)
+kconfig_add_kcfg_files(romthumbnailer_SRCS configdata.kcfgc)
 
 add_library(romthumbnailer MODULE ${romthumbnailer_SRCS})
 target_link_libraries(romthumbnailer PRIVATE
@@ -54,4 +54,4 @@ target_link_libraries(romthumbnailer PRIVATE
     
 install(TARGETS romthumbnailer DESTINATION ${PLUGIN_INSTALL_DIR})
 install(FILES romthumbnailer.desktop DESTINATION ${SERVICES_INSTALL_DIR})
-install(FILES romthumbnailerconfig.kcfg DESTINATION ${KCFG_INSTALL_DIR})
+install(FILES configdata.kcfgc DESTINATION ${KCFG_INSTALL_DIR})

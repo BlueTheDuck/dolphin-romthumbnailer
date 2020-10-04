@@ -7,15 +7,20 @@ namespace Ui {
 class ConfigUi;
 }
 
-class ConfigUi : public QWidget
-{
+class ConfigUi : public QWidget {
     Q_OBJECT
 
-public:
+  public:
     explicit ConfigUi(QWidget *parent = nullptr);
     ~ConfigUi();
 
-private:
+    bool getUseFrames() const;
+    void setUseFrames(bool);
+
+    QUrl getDSCoversPath() const;
+    void setDSCoversPath(QUrl);
+
+  private:
     Ui::ConfigUi *ui;
 };
 

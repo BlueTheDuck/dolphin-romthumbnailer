@@ -1,3 +1,4 @@
 [Project]
 Name=RomThumbnailer
 Manager=KDevGenericManager
+Mutators=true

@@ -13,10 +13,6 @@ Q_LOGGING_CATEGORY(LOG_ROMTHUMBNAILER, "romthumbnailer")
 #include "configui.h"
 #include "nds.h"
 
-extern "C" {
-Q_DECL_EXPORT ThumbCreator *new_creator() { return new RomThumbnailer(); }
-}
-
 RomThumbnailer::RomThumbnailer() {}
 
 RomThumbnailer::~RomThumbnailer() {}

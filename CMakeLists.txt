@@ -35,7 +35,8 @@ set (Settings_src ${PROJECT_SOURCE_DIR}/src/configui.cpp)
 qt5_wrap_cpp(Settings_hdr_moc ${PROJECT_SOURCE_DIR}/src/configui.h)
 qt5_wrap_ui (Settings_ui_moc  ${PROJECT_SOURCE_DIR}/src/configui.ui)
 
-set(romthumbnailer_SRCS 
+set(romthumbnailer_SRCS
+    src/main.cpp
     src/romthumbnailer.cpp
     src/nds.cpp
     ${Settings_src}
@@ -51,6 +52,18 @@ target_link_libraries(romthumbnailer PRIVATE
     KF5::ConfigGui
     Qt5::Widgets
 )
+
+# Tests
+option(TESTS "Include tests" ON)
+if(TESTS)
+    include(GoogleTest)
+    add_subdirectory(tests)
+    #include(tests)
+    #find_package(GTest)
+    #add_executable(FooTest test/tests.cpp)
+    #gtest_add_tests(FooTest "" AUTO)
+    #target_link_libraries(FooTest gtest gtest_main Qt5::Widgets)
+endif()
     
 install(TARGETS romthumbnailer DESTINATION ${PLUGIN_INSTALL_DIR})
 install(FILES romthumbnailer.desktop DESTINATION ${SERVICES_INSTALL_DIR})

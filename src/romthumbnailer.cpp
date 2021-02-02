@@ -43,8 +43,6 @@ bool RomThumbnailer::create(const QString &path, int w, int h, QImage &icon) {
     }
     if (!return_status) {
         qCCritical(LOG_ROMTHUMBNAILER) << "An error has ocurred.";
-        icon.fill(Qt::GlobalColor::red);
-        return_status = true;
     }
     return return_status;
 }

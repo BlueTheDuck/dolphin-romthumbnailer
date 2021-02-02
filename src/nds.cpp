@@ -11,8 +11,8 @@ template <typename T> std::string as_hex(T t) {
     return ss.str();
 }
 
-NDS::NDS::NDS(std::unique_ptr<QFile> file) { this->_file = std::move(file); }
-QString NDS::NDS::get_rom_code() const {
+NDS::NDS(std::unique_ptr<QFile> file) { this->_file = std::move(file); }
+QString NDS::get_rom_code() const {
     qCDebug(LOG_ROMTHUMBNAILER_NDS) << "Reading ROM code";
     assert(this->_file->seek(GAME_CODE_ADDR));
     QByteArray file_data = this->_file->read(4);
@@ -20,61 +20,81 @@ QString NDS::NDS::get_rom_code() const {
     return code;
 }
 
-uint32_t NDS::NDS::get_banner_offset() const {
+uint32_t NDS::get_banner_offset() const {
     qCDebug(LOG_ROMTHUMBNAILER_NDS) << "Calculating banner offset";
     assert(this->_file->seek(BANNER_OFFSET_ADDR));
     auto data   = this->_file->read(4);
     auto offset = 0;
-    for (int i = 0; i < 4; i++) {
-        offset <<= 8;
-        offset |= data.at(i);
+    for (int i = 3; i >= 0; i--) {
+        uint8_t byte = data.at(i) & 0xFF;
+        offset       = (offset << 8) | byte;
     }
     return offset;
 }
 
-void NDS::NDS::get_icon(QImage &img) const {
+void NDS::get_icon(QImage &img) const {
+    // Shorthand for colors
+    auto palette = this->get_icon_palette();
+    // Width of a tile (in bytes)
+    const uint64_t tile_width = 4;
+    // Height of a tile (in bytes)
+    const uint64_t tile_height = 8;
+    // How many bytes is one tile
+    const uint64_t tile_bytes = 32;
+
+    img = QImage(QSize(32, 32), QImage::Format::Format_RGB32);
+    img.fill(QColorConstants::White);
+
     qCDebug(LOG_ROMTHUMBNAILER_NDS) << "Generating icon";
-    int colors[16] = {
-        0x000000, 0x00007F, 0x007F00, 0x007F7F, 0x7F0000, 0x7F007F,
-        0x7F7F00, 0x7F7F7F, 0x000000, 0x0000FF, 0x00FF00, 0x00FFFF,
-        0xFF0000, 0xFF00FF, 0xFFFF00, 0xFFFFFF,
-    };
-    qCDebug(LOG_ROMTHUMBNAILER_NDS) << "Reading image";
     assert(this->_file->seek(ICON_BITMAP_ADDR + this->get_banner_offset()));
     auto data = this->_file->read(ICON_BITMAP_SIZE);
-    assert(data.size() % 4 * 8 == 0);
-    for (size_t base = 0, i = 0; base < ICON_BITMAP_SIZE; base += 4 * 8, i++) {
-        auto point_data = int(data.at(base));
-        auto base_x = (i % 4) * 8;
-        auto base_y = (i - (i % 4)) / 4 * 8;
-        for(size_t x = 0; x < 8; x++)
-            for(size_t y = 0; y < 8; y++)
-                img.setPixel(base_x +x,base_y+y,colors[point_data]);
+    assert(data.size() == ICON_BITMAP_SIZE);
+
+    // Images are 4x4 tiles
+    for (size_t tile_y = 0; tile_y < 4; tile_y++) {
+        for (size_t tile_x = 0; tile_x < 4; tile_x++) {
+            // Each tile is 8x8 pixels, but in each byte there are 2 pixels, so the tile is 8x4 bytes
+            for (size_t local_y = 0; local_y < tile_height; local_y++) {
+                for (size_t local_x = 0; local_x < tile_width; local_x++) {
+                    // Convert current position to index in the data stream
+                    size_t idx = tile_y * tile_bytes * 4 + tile_x * tile_bytes +
+                        local_y * tile_width + local_x;
+                    uint8_t pixel_data  = data.at(idx);
+                    uint8_t   right_pixel = (pixel_data >> 4) & 0x0F;
+                    uint8_t left_pixel = (pixel_data & 0x0F);
+                    size_t  x           = tile_x * 8 + local_x * 2;
+                    size_t  y           = tile_y * 8 + local_y;
+                    assert(img.pixel(x, y) == 0xFFFFFFFF);
+                    img.setPixel(x, y, palette.at(left_pixel));
+                    img.setPixel(x + 1, y, palette.at(right_pixel));
+                }
+            }
+        }
     }
     qCDebug(LOG_ROMTHUMBNAILER_NDS) << "Done generating icon";
-
 }
 
-/*
-size_t NDS::get_banner_offset(QFile &file) {
-    file.seek(NDS::BANNER_OFFSET_ADDR);
-    qCDebug(LOG_ROMTHUMBNAILER_NDS) << "Pos: " << file.pos();
-    uint32_t offset = 0;
+QVector<uint32_t> NDS::get_icon_palette() const {
+    QVector<uint32_t> palette;
+    palette.reserve(16);
 
-    auto     data   = file.read(1);
-    for (QByteArray::iterator i = data.begin(); i != data.end(); ++i) {
-        // 00 00 0F 84
-        qCDebug(LOG_ROMTHUMBNAILER_NDS) << "Byte: " <<
-as_hex(static_cast<uint64_t>(*i)&0xFF).c_str(); offset = (offset << 8) + *i;
+    qCDebug(LOG_ROMTHUMBNAILER_NDS) << "Reading icon palette";
+    // Palette after bitmap
+    assert(this->_file->seek(this->get_banner_offset() + ICON_BITMAP_ADDR +
+                             ICON_BITMAP_SIZE));
+    auto data = this->_file->read(0x20);
+    for (size_t i = 0; i < 32; i += 2) {
+        uint8_t hi = data.at(i + 1);
+        uint8_t lo = data.at(i);
+        // This is a 555 BGR color. No idea why, but NO$GBA calls it "setting"
+        uint16_t setting = lo | uint16_t(hi) << 8;
+        uint32_t red     = (setting & 0b0000'0000'0001'1111) << 3;
+        uint32_t green   = (setting & 0b0000'0011'1110'0000) >> 5 << 3;
+        uint32_t blue    = (setting & 0b0111'1100'0000'0000) >> 10 << 3;
+        uint32_t color   = 0xFF000000 | ((red & 0xFF) << 16) |
+            ((green & 0xFF) << 8) | (blue & 0xFF);
+        palette.push_back(color);
     }
-std::stringstream ss;
-ss << "0x" << std::setfill('0') << std::setw(8) << std::hex << offset;
-qCDebug(LOG_ROMTHUMBNAILER_NDS) << "Offset: " << as_hex(offset).c_str();
-return offset;
-}
 
-void NDS::get_icon(QFile &in, QImage &image) {
-    uint8_t pixmap[32][32] = {0};
-    auto    offset         = NDS::get_banner_offset(in);
+    return palette;
 }
-*/

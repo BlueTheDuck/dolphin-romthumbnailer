@@ -17,57 +17,36 @@ RomThumbnailer::RomThumbnailer() {}
 
 RomThumbnailer::~RomThumbnailer() {}
 
-bool RomThumbnailer::create(const QString &path, int w, int h, QImage &img) {
-    qCDebug(LOG_ROMTHUMBNAILER) << "Generating thumb for " << path << '\n';
-    QImage out(QSize(w, h), QImage::Format::Format_ARGB32_Premultiplied);
-    QFile  in(path);
+bool RomThumbnailer::create(const QString &path, int w, int h, QImage &icon) {
+    qCDebug(LOG_ROMTHUMBNAILER)
+        << "Generating thumb for " << path << " Size: " << QSize(w, h);
 
-    in.open(QIODevice::ReadOnly);
+    std::unique_ptr<QFile> file(new QFile(path));
+    bool                   return_status = false;
+
+    file->open(QIODevice::OpenModeFlag::ReadOnly);
 
     if (path.endsWith(".nds")) {
-        if (in.exists() || in.isReadable()) {
-            QString path = ConfigData::dSCoversPath();
-
-            qCDebug(LOG_ROMTHUMBNAILER) << "Thumbnails on: " << path << '\n';
-
-            char game_code[4];
-            NDS::get_rom_code(in, game_code);
-            qCDebug(LOG_ROMTHUMBNAILER) << "ROM Code: " << game_code << '\n';
-
-            QDir ds_covers(path);
-            if (!ds_covers.exists()) {
-                qCDebug(LOG_ROMTHUMBNAILER)
-                    << "Path set on config  (" << ds_covers.path()
-                    << ") does not exists" << '\n';
-                return false;
-            }
-            ds_covers.setSorting(QDir::SortFlag::Name);
-            ds_covers.setFilter(QDir::Filter::Files);
-
-            QFileInfo cover_file;
-            auto      file_list_info = ds_covers.entryInfoList();
-            for (auto file : file_list_info) {
-                if (file.baseName() == game_code) {
-                    qCDebug(LOG_ROMTHUMBNAILER)
-                        << "Found cover file: " << file.absolutePath() << '\n';
-                    cover_file = file;
-                    break;
-                }
-            }
-            if (cover_file.exists()) {
-                QImage cover_image(cover_file.absoluteFilePath());
-                img = cover_image;
-                return true;
-            }
-        } else {
-            qCDebug(LOG_ROMTHUMBNAILER) << "Error!\n";
+        if (file->exists() || file->isReadable()) {
+            NDS  nds(std::move(file));
+            auto code = nds.get_rom_code();
+            qCDebug(LOG_ROMTHUMBNAILER) << "ROM Code: " << code << '\n';
+            nds.get_icon(icon);
+            icon =
+                icon.scaled(QSize(w, h), Qt::AspectRatioMode::KeepAspectRatio,
+                            Qt::TransformationMode::SmoothTransformation);
+            return_status = true;
         }
     } else if (path.endsWith(".gba") || path.endsWith(".agb")) {
-        out.fill(Qt::GlobalColor::blue);
-        img = out;
-        return true;
+        icon.fill(Qt::GlobalColor::blue);
+        return_status = true;
     }
-    return false;
+    if (!return_status) {
+        qCCritical(LOG_ROMTHUMBNAILER) << "An error has ocurred.";
+        icon.fill(Qt::GlobalColor::red);
+        return_status = true;
+    }
+    return return_status;
 }
 
 QWidget *RomThumbnailer::createConfigurationWidget() {
@@ -86,3 +65,5 @@ void RomThumbnailer::writeConfiguration(const QWidget *configurationWidget) {
         QUrl::UrlFormattingOption::RemoveScheme));
     config_data->save();
 }
+
+ThumbCreator::Flags RomThumbnailer::flags() const { return ThumbCreator::None; }

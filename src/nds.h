@@ -23,7 +23,13 @@ class NDS {
     NDS(std::unique_ptr<QFile> file);
     uint32_t get_banner_offset() const;
     QString  get_rom_code() const;
-    void     get_icon(QImage &) const;
+    /// The NDS boot menu shows a banner, an icon over the game's title. This
+    /// function gets the icon and outputs an RGB32 image
+    /// @param Image to overwrite with the ROM icon. Must be uninitialized
+    void get_icon(QImage &) const;
+    /// Reads the palette used by the icon and converts it into RGB32
+    /// @return 16 RGB32 colors
+    QVector<uint32_t> get_icon_palette() const;
 };
 
 #endif

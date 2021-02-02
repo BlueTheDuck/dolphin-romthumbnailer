@@ -1,1 +1,5 @@
 build/*
+tests/icon.png
+.vscode/*
+*.code-workspace
+*.nds

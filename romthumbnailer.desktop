@@ -2,8 +2,8 @@
 Type=Service
 Name=ROMs
 X-KDE-ServiceTypes=ThumbCreator
-MimeType=application/x-nintendo-ds-rom;
+MimeType=application/x-nintendo-ds-rom
 CacheThumbnail=false
 X-KDE-Library=romthumbnailer
-ThumbnailerVersion=4
+ThumbnailerVersion=5
 Configurable=true

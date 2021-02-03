@@ -1,13 +1,13 @@
-set(QT_MIN_VERSION "5.4.0")
 find_package(Qt5 ${QT_MIN_VERSION} CONFIG REQUIRED COMPONENTS
     Gui
 )
 
-add_executable(NDS_TEST nds.cpp ${PROJECT_SOURCE_DIR}/src/nds.cpp)
+add_executable(NDS_TEST nds.cpp)
 target_link_libraries(NDS_TEST PUBLIC
     gtest
     gtest_main
     Qt5::Gui
+    romdata
 )
 # gtest_discover_tests replaces gtest_add_tests,
 # see https://cmake.org/cmake/help/v3.10/module/GoogleTest.html for more options to pass to it

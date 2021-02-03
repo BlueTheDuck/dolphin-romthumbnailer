@@ -1,4 +1,4 @@
-#include "../src/nds.h"
+#include "nds.h"
 #include "inttypes.h"
 #include "gtest/gtest.h"
 #include <QImage>

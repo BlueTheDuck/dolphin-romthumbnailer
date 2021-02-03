@@ -11,7 +11,7 @@ Q_LOGGING_CATEGORY(LOG_ROMTHUMBNAILER, "romthumbnailer")
 
 #include "configdata.h"
 #include "configui.h"
-#include "nds.h"
+#include "romdata.h"
 
 RomThumbnailer::RomThumbnailer() {}
 

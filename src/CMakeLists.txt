@@ -1,8 +1,3 @@
-
-
-set(QT_MIN_VERSION "5.4.0")
-set(KF5_MIN_VERSION "5.3.0")
-
 ### Find required packages (Qt5 and KDE Framework 5)
 # Configure Qt5's CMake
 set(CMAKE_AUTOUIC ON)
@@ -27,24 +22,14 @@ include_directories(${KF5_INCLUDES})
 
 ### Configure building sources and components
 # ROMData library
-set(romdata_SRCS
-    nds.cpp
-)
-add_library(romdata STATIC ${romdata_SRCS})
-target_link_libraries(romdata Qt5::Widgets)
-
-
-# Configuration UI
-set(settings_src 
-    configui.cpp
-    configui.h
-    configui.ui
-)
+add_subdirectory(romdata)
 
 set(romthumbnailer_SRCS
     main.cpp
     romthumbnailer.cpp
-    ${settings_src}
+    configui.cpp
+    configui.h
+    configui.ui
 )
 add_library(romthumbnailer MODULE ${romthumbnailer_SRCS})
 kconfig_add_kcfg_files(romthumbnailer ${PROJECT_SOURCE_DIR}/configdata.kcfgc)

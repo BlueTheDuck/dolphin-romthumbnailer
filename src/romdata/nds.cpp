@@ -12,6 +12,7 @@ template <typename T> std::string as_hex(T t) {
 }
 
 NDS::NDS(std::unique_ptr<QFile> file) { this->_file = std::move(file); }
+
 QString NDS::get_rom_code() const {
     qCDebug(LOG_ROMTHUMBNAILER_NDS) << "Reading ROM code";
     assert(this->_file->seek(GAME_CODE_ADDR));
@@ -42,7 +43,7 @@ void NDS::get_icon(QImage &img) const {
     // How many bytes is one tile
     const uint64_t tile_bytes = 32;
 
-    img = QImage(QSize(32, 32), QImage::Format::Format_RGB32);
+    img = QImage(QSize(32, 32), QImage::Format::Format_ARGB32);
     img.fill(QColorConstants::White);
 
     qCDebug(LOG_ROMTHUMBNAILER_NDS) << "Generating icon";
@@ -53,20 +54,27 @@ void NDS::get_icon(QImage &img) const {
     // Images are 4x4 tiles
     for (size_t tile_y = 0; tile_y < 4; tile_y++) {
         for (size_t tile_x = 0; tile_x < 4; tile_x++) {
-            // Each tile is 8x8 pixels, but in each byte there are 2 pixels, so the tile is 8x4 bytes
+            // Each tile is 8x8 pixels, but in each byte there are 2 pixels, so
+            // the tile is 8x4 bytes
             for (size_t local_y = 0; local_y < tile_height; local_y++) {
                 for (size_t local_x = 0; local_x < tile_width; local_x++) {
                     // Convert current position to index in the data stream
                     size_t idx = tile_y * tile_bytes * 4 + tile_x * tile_bytes +
                         local_y * tile_width + local_x;
-                    uint8_t pixel_data  = data.at(idx);
-                    uint8_t   right_pixel = (pixel_data >> 4) & 0x0F;
-                    uint8_t left_pixel = (pixel_data & 0x0F);
                     size_t  x           = tile_x * 8 + local_x * 2;
                     size_t  y           = tile_y * 8 + local_y;
-                    assert(img.pixel(x, y) == 0xFFFFFFFF);
-                    img.setPixel(x, y, palette.at(left_pixel));
-                    img.setPixel(x + 1, y, palette.at(right_pixel));
+                    uint8_t pixel_data  = data.at(idx);
+                    uint8_t right_pixel = (pixel_data >> 4) & 0x0F;
+                    uint8_t left_pixel  = (pixel_data & 0x0F);
+
+                    // If color idx is 0, then we substitute it with transparent (0x000000)
+                    uint32_t left_pix_color =
+                        left_pixel == 0 ? 0x00000000 : palette.at(left_pixel);
+                    uint32_t right_pix_color =
+                        right_pixel == 0 ? 0x00000000 : palette.at(right_pixel);
+
+                    img.setPixel(x, y, left_pix_color);
+                    img.setPixel(x + 1, y, right_pix_color);
                 }
             }
         }

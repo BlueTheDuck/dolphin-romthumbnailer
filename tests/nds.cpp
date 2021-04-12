@@ -46,7 +46,7 @@ TEST(NdsTests, Icon) {
     NDS    rom(std::move(file));
     QImage icon;
     rom.get_icon(icon);
-    // I don't have a way to test if the image is correct, so lets just save it here and check by eye. If it looks OK, the it's good enought
+    // I don't have a way to test if the image is correct, so lets just save it here and check by eye. If it looks OK, then it's good enough
     icon.save("../../tests/icon.png");
 }
 

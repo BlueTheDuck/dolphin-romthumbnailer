@@ -27,7 +27,7 @@ bool RomThumbnailer::create(const QString &path, int w, int h, QImage &icon) {
     file->open(QIODevice::OpenModeFlag::ReadOnly);
 
     if (path.endsWith(".nds")) {
-        if (file->exists() || file->isReadable()) {
+        if (file->exists() && file->isReadable()) {
             NDS  nds(std::move(file));
             auto code = nds.get_rom_code();
             qCDebug(LOG_ROMTHUMBNAILER) << "ROM Code: " << code << '\n';

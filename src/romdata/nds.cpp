@@ -21,19 +21,27 @@ QString NDS::get_rom_code() const {
     return code;
 }
 
-uint32_t NDS::get_banner_offset() const {
+std::optional<uint32_t> NDS::get_banner_offset() const {
     qCDebug(LOG_ROMTHUMBNAILER_NDS) << "Calculating banner offset";
     assert(this->_file->seek(BANNER_OFFSET_ADDR));
-    auto data   = this->_file->read(4);
-    auto offset = 0;
+    auto     data   = this->_file->read(4);
+    uint32_t offset = 0;
     for (int i = 3; i >= 0; i--) {
         uint8_t byte = data.at(i) & 0xFF;
         offset       = (offset << 8) | byte;
     }
-    return offset;
+    if (offset != 0)
+        return offset;
+    else
+        return {};
 }
 
-void NDS::get_icon(QImage &img) const {
+bool NDS::get_icon(QImage &img) const {
+    auto banner_offset = this->get_banner_offset();
+    if (!banner_offset.has_value()) {
+        return false;
+    }
+
     // Shorthand for colors
     auto palette = this->get_icon_palette();
     // Width of a tile (in bytes)
@@ -47,7 +55,7 @@ void NDS::get_icon(QImage &img) const {
     img.fill(QColorConstants::White);
 
     qCDebug(LOG_ROMTHUMBNAILER_NDS) << "Generating icon";
-    assert(this->_file->seek(ICON_BITMAP_ADDR + this->get_banner_offset()));
+    assert(this->_file->seek(ICON_BITMAP_ADDR + banner_offset.value()));
     auto data = this->_file->read(ICON_BITMAP_SIZE);
     assert(data.size() == ICON_BITMAP_SIZE);
 
@@ -67,7 +75,8 @@ void NDS::get_icon(QImage &img) const {
                     uint8_t right_pixel = (pixel_data >> 4) & 0x0F;
                     uint8_t left_pixel  = (pixel_data & 0x0F);
 
-                    // If color idx is 0, then we substitute it with transparent (0x000000)
+                    // If color idx is 0, then we substitute it with transparent
+                    // (0x000000)
                     uint32_t left_pix_color =
                         left_pixel == 0 ? 0x00000000 : palette.at(left_pixel);
                     uint32_t right_pix_color =
@@ -80,15 +89,22 @@ void NDS::get_icon(QImage &img) const {
         }
     }
     qCDebug(LOG_ROMTHUMBNAILER_NDS) << "Done generating icon";
+    return true;
 }
 
 QVector<uint32_t> NDS::get_icon_palette() const {
+    auto banner_offset = this->get_banner_offset();
+    // TODO: Improve this
+    if(!banner_offset.has_value()) {
+        return {};
+    }
+
     QVector<uint32_t> palette;
     palette.reserve(16);
 
     qCDebug(LOG_ROMTHUMBNAILER_NDS) << "Reading icon palette";
     // Palette after bitmap
-    assert(this->_file->seek(this->get_banner_offset() + ICON_BITMAP_ADDR +
+    assert(this->_file->seek(banner_offset.value() + ICON_BITMAP_ADDR +
                              ICON_BITMAP_SIZE));
     auto data = this->_file->read(0x20);
     for (size_t i = 0; i < 32; i += 2) {

@@ -35,7 +35,7 @@ TEST(NdsTests, BannerOffset) {
     std::unique_ptr<QFile> file(new QFile(rom_path));
     file->open(QIODevice::OpenModeFlag::ReadOnly);
     NDS  rom(std::move(file));
-    auto offset = rom.get_banner_offset();
+    auto offset = rom.get_banner_offset().value_or(0);
     qCDebug(LOG_TESTS_NDS) << QString("Banner offset = %1").arg(offset, 8, 16);
     ASSERT_EQ(offset, expected_banner_offset);
 }
@@ -45,7 +45,7 @@ TEST(NdsTests, Icon) {
     file->open(QIODevice::OpenModeFlag::ReadOnly);
     NDS    rom(std::move(file));
     QImage icon;
-    rom.get_icon(icon);
+    ASSERT_TRUE(rom.get_icon(icon));
     // I don't have a way to test if the image is correct, so lets just save it here and check by eye. If it looks OK, then it's good enough
     icon.save("../../tests/icon.png");
 }

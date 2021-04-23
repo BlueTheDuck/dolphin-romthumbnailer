@@ -31,20 +31,17 @@ bool RomThumbnailer::create(const QString &path, int w, int h, QImage &icon) {
             NDS  nds(std::move(file));
             auto code = nds.get_rom_code();
             qCDebug(LOG_ROMTHUMBNAILER) << "ROM Code: " << code << '\n';
-            nds.get_icon(icon);
-            icon =
-                icon.scaled(QSize(w, h), Qt::AspectRatioMode::KeepAspectRatio,
-                            Qt::TransformationMode::SmoothTransformation);
-            return_status = true;
+            if (nds.get_icon(icon)) {
+                icon = icon.scaled(
+                    QSize(w, h), Qt::AspectRatioMode::KeepAspectRatio,
+                    Qt::TransformationMode::SmoothTransformation);
+                return true;
+            }
         }
     } else if (path.endsWith(".gba") || path.endsWith(".agb")) {
         icon.fill(Qt::GlobalColor::blue);
-        return_status = true;
     }
-    if (!return_status) {
-        qCCritical(LOG_ROMTHUMBNAILER) << "An error has ocurred.";
-    }
-    return return_status;
+    return false;
 }
 
 QWidget *RomThumbnailer::createConfigurationWidget() {

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<component type="addon">
+  <id>org.ndsromthumbnailer.metainfo</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-2.0+</project_license>
+  <extends>org.kde.dolphin.desktop</extends>
+  <extends>org.kde.konqueror.desktop</extends>
+  <extends>org.kde.krusader.desktop</extends>
+  <name>NDS ROM Thumbnailer</name>
+  <summary>NDS ROM thumbnail generator</summary>
+  <description>
+    <p>NDS ROM thumbnail generator for KDE file managers.</p>
+  </description>
+  <url type="homepage">N/A</url>
+  <url type="bugtracker">N/A</url>
+  <project_group>BlueTheDuck</project_group>
+  <categories><category>Video</category></categories>
+  <icon type="stock">video-x-generic</icon>
+</component>

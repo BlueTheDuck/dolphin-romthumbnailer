@@ -1,9 +1,0 @@
-[Desktop Entry]
-Type=Service
-Name=ROMs
-X-KDE-ServiceTypes=ThumbCreator
-MimeType=application/x-nintendo-ds-rom
-CacheThumbnail=false
-X-KDE-Library=romthumbnailer
-ThumbnailerVersion=7
-Configurable=true

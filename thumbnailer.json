@@ -1,0 +1,11 @@
+{
+    "CacheThumbnail": false,
+    "HandleSequences": true,
+    "KPlugin": {
+        "MimeTypes": [
+            "application/x-nintendo-ds-rom"
+        ],
+        "Name": "Nintendo DS ROM files"
+    },
+    "Version": 3
+}
